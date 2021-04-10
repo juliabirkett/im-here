@@ -1,0 +1,12 @@
+# Gradle
+
+.gradle/
+build/
+target/
+
+# IntelliJ IDEA
+.idea/*
+!.idea/runConfigurations/
+!.idea/codeStyles/
+out/
+
