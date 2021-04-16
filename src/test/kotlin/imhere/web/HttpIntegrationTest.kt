@@ -1,11 +1,9 @@
 package imhere.web
 
-import errorhandling.ErrorCode
-import errorhandling.Result
 import imhere.application.Hub
 import imhere.domain.UserId
-import io.mockk.every
-import io.mockk.mockk
+import imhere.domain.acl.Storage
+import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,8 +11,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class HttpIntegrationTest {
-    private val hub = mockk<Hub>()
-    private val handler = imhere.web.ImHereHttpHandler(hub)
+    private val testingStorage: Storage = InMemoryStorage()
+    private val hub = Hub(storage = testingStorage)
+    private val handler: HttpHandler = ImHereHttpHandler(hub)
 
     @Nested
     inner class WhenUserExists {
@@ -22,7 +21,7 @@ class HttpIntegrationTest {
 
         @Test
         fun `when checking in successfully, returns 201`() {
-            every { hub.checkIn() } returns Result.of(mockk())
+            testingStorage.save(existingUser)
             val request = Request(method = Method.POST, uri = "/check-in")
                 .body(jsonActionBody(existingUser))
 
@@ -31,10 +30,8 @@ class HttpIntegrationTest {
 
         @Test
         fun `when checking out after check-in, returns 201`() {
-            every { hub.checkIn() } returns Result.of(mockk())
-            every { hub.checkOut() } returns Result.of(mockk())
             val checkInRequest = Request(method = Method.POST, uri = "/check-in")
-            handler(checkInRequest)
+
             val request = Request(method = Method.POST, uri = "/check-out")
 
             assertEquals(201, handler(request).status.code)
@@ -42,7 +39,6 @@ class HttpIntegrationTest {
 
         @Test
         fun `when checking out without checking in, returns 422`() {
-            every { hub.checkOut() } returns Result.failure(object : ErrorCode {})
             val request = Request(method = Method.POST, uri = "/check-out")
 
             assertEquals(422, handler(request).status.code)
@@ -53,7 +49,6 @@ class HttpIntegrationTest {
     inner class WhenUserDoesNotExist {
         @Test
         fun `when checking in, returns 404`() {
-            every { hub.checkIn() } returns Result.failure(object : ErrorCode {})
             val request = Request(method = Method.POST, uri = "/check-in")
                 .body(jsonActionBody(UserId()))
 
@@ -64,4 +59,11 @@ class HttpIntegrationTest {
     private fun jsonActionBody(userId: UserId): String =  """
         { "user": "${userId.raw}" }
     """
+}
+
+class InMemoryStorage: Storage {
+    private var users: Set<UserId> = emptySet()
+
+    override fun find(userId: UserId): UserId? = users.find { it == userId }
+    override fun save(userId: UserId) { users = users + userId }
 }

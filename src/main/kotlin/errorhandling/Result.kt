@@ -1,5 +1,6 @@
 package errorhandling
 
+import errorhandling.Result.Companion.failure
 import errorhandling.Result.Companion.success
 
 sealed class Result<out T, out E> {
@@ -28,6 +29,7 @@ fun <U, T, E: ErrorCode> Result<T, E>.andThen(transform: (T) -> Result<U, E>): R
 }
 
 fun <T> T.asSuccess(): Result<T, Nothing> = success(this)
+fun <E : ErrorCode> E.asFailure(): Result<Nothing, E> = failure(this)
 
 inline fun <T, E: ErrorCode> Result<T, E>.orElse(f: (E) -> T): T = when (this) {
     is Error -> f(value)
