@@ -19,15 +19,15 @@ class ImHereHttpHandler(
 ): HttpHandler {
     val app = routes(
         "check-in" bind POST to { handleCheckIn(jacksonObjectMapper().readTree(it.bodyString()).at("/user").textValue().toUserId()) },
-        "check-out" bind POST to { handleCheckout() }
+        "check-out" bind POST to { handleCheckout(jacksonObjectMapper().readTree(it.bodyString()).at("/user").textValue().toUserId()) }
     )
 
     override fun invoke(request: Request): Response = app(request)
 
-    fun handleCheckout(): Response = hub.checkOut().map {
+    fun handleCheckout(user: UserId): Response = hub.checkOut(user).map {
         Response(Status.CREATED)
     }.orElse {
-        Response(Status.UNPROCESSABLE_ENTITY)
+        Response(Status.NOT_FOUND)
     }
 
     fun handleCheckIn(user: UserId): Response = hub.checkIn(user).map {

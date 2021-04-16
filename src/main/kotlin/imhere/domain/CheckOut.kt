@@ -1,4 +1,4 @@
+import java.time.Instant
 
-
-interface CheckOut
-interface CheckIn
+data class CheckIn(val at: Instant)
+data class CheckOut(val at: Instant)
