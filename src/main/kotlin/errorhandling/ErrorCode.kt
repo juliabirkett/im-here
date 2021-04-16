@@ -1,0 +1,3 @@
+package errorhandling
+
+interface ErrorCode

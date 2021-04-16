@@ -1,5 +1,6 @@
 package imhere.web
 
+import errorhandling.ErrorCode
 import errorhandling.Result
 import imhere.application.Hub
 import io.mockk.every
@@ -32,7 +33,7 @@ class HttpIntegrationTest {
 
     @Test
     fun `when checking out without checking in, returns 422`() {
-        every { hub.checkOut() } returns Result.failure(Exception("Something bad happened there!"))
+        every { hub.checkOut() } returns Result.failure(object : ErrorCode {})
         val request = Request(method = Method.POST, uri = "/check-out")
 
         assertEquals(422, handler(request).status.code)
