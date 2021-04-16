@@ -15,7 +15,7 @@ class ImHereHttpHandler(
     private val hub: Hub
 ): HttpHandler {
     val app = routes(
-        "check-in" bind POST to { Response(Status.CREATED) },
+        "check-in" bind POST to { handleCheckIn() },
         "check-out" bind POST to { handleCheckout() }
     )
 
@@ -25,5 +25,11 @@ class ImHereHttpHandler(
         Response(Status.CREATED)
     }.orElse {
         Response(Status.UNPROCESSABLE_ENTITY)
+    }
+
+    fun handleCheckIn(): Response = hub.checkIn().map {
+        Response(Status.CREATED)
+    }.orElse {
+        Response(Status.NOT_FOUND)
     }
 }

@@ -17,11 +17,12 @@ class HttpIntegrationTest {
     private val handler = imhere.web.ImHereHttpHandler(hub)
 
     @Nested
-    inner class WithExistingUser {
+    inner class WhenUserExists {
         private val existingUser = UserId()
 
         @Test
         fun `when checking in successfully, returns 201`() {
+            every { hub.checkIn() } returns Result.of(mockk())
             val request = Request(method = Method.POST, uri = "/check-in")
                 .body(jsonActionBody(existingUser))
 
@@ -30,6 +31,7 @@ class HttpIntegrationTest {
 
         @Test
         fun `when checking out after check-in, returns 201`() {
+            every { hub.checkIn() } returns Result.of(mockk())
             every { hub.checkOut() } returns Result.of(mockk())
             val checkInRequest = Request(method = Method.POST, uri = "/check-in")
             handler(checkInRequest)
@@ -48,9 +50,10 @@ class HttpIntegrationTest {
     }
 
     @Nested
-    inner class WithUnexistingUser {
+    inner class WhenUserDoesNotExist {
         @Test
         fun `when checking in, returns 404`() {
+            every { hub.checkIn() } returns Result.failure(object : ErrorCode {})
             val request = Request(method = Method.POST, uri = "/check-in")
                 .body(jsonActionBody(UserId()))
 
