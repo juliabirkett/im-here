@@ -1,12 +1,9 @@
 package imhere.web
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import errorhandling.map
 import errorhandling.orElse
 import imhere.application.Hub
-import imhere.domain.AttemptToCheckOut
 import imhere.domain.UserId
-import imhere.domain.acl.UserNotFound
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method.POST
 import org.http4k.core.Request
@@ -20,21 +17,15 @@ class ImHereHttpHandler(
     private val hub: Hub
 ): HttpHandler {
     val app = routes(
-        "check-in" bind POST to { handleCheckIn(jacksonObjectMapper().readTree(it.bodyString()).at("/user").textValue().toUserId()) },
-        "check-out" bind POST to { handleCheckout(jacksonObjectMapper().readTree(it.bodyString()).at("/user").textValue().toUserId()) }
+        "check-in" bind POST to { handleCheckIn(it.jsonToText("/user").toUserId()) },
+        "check-out" bind POST to { handleCheckout(it.jsonToText("/user").toUserId()) }
     )
 
     override fun invoke(request: Request): Response = app(request)
 
     fun handleCheckout(user: UserId): Response = hub.checkOut(user).map {
         Response(Status.CREATED)
-    }.orElse {
-        when (it) {
-            is UserNotFound -> Response(Status.NOT_FOUND)
-            is AttemptToCheckOut -> Response(Status.UNPROCESSABLE_ENTITY)
-            else -> Response(Status.INTERNAL_SERVER_ERROR)
-        }
-    }
+    }.orElse { Response(it.toHttpStatus()) }
 
     fun handleCheckIn(user: UserId): Response = hub.checkIn(user).map {
         Response(Status.CREATED)
