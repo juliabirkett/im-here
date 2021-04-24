@@ -1,9 +1,13 @@
 package imhere.web
 
+import errorhandling.Result
+import errorhandling.asFailure
+import errorhandling.asSuccess
 import imhere.application.Hub
 import imhere.domain.Timetable
 import imhere.domain.UserId
 import imhere.domain.acl.Storage
+import imhere.domain.acl.UserNotFound
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -19,35 +23,35 @@ class HttpIntegrationTest {
 
     @Nested
     inner class WhenUserExists {
-        private val existingUser = UserId()
+        private val emptyTimetable = Timetable(userId = UserId())
 
         @Test
         fun `when checking in successfully, returns 201`() {
-            testingStorage.save(existingUser)
+            testingStorage.save(emptyTimetable)
             val request = Request(method = Method.POST, uri = "/check-in")
-                .body(jsonActionBody(existingUser))
+                .body(jsonActionBody(emptyTimetable.userId))
 
             assertEquals(201, handler(request).status.code)
         }
 
         @Test
         fun `when checking out after check-in, returns 201`() {
-            testingStorage.save(existingUser)
+            testingStorage.save(emptyTimetable.checkIn())
             val checkInRequest = Request(method = Method.POST, uri = "/check-in")
-                .body(jsonActionBody(existingUser))
+                .body(jsonActionBody(emptyTimetable.userId))
             handler(checkInRequest)
 
             val request = Request(method = Method.POST, uri = "/check-out")
-                .body(jsonActionBody(existingUser))
+                .body(jsonActionBody(emptyTimetable.userId))
 
             assertEquals(201, handler(request).status.code)
         }
 
         @Test
         fun `when checking out without checking in, returns 422`() {
-            testingStorage.save(existingUser)
+            testingStorage.save(emptyTimetable)
             val request = Request(method = Method.POST, uri = "/check-out")
-                .body(jsonActionBody(existingUser))
+                .body(jsonActionBody(emptyTimetable.userId))
 
             assertEquals(422, handler(request).status.code)
         }
@@ -81,7 +85,9 @@ class InMemoryStorage: Storage {
     private var userRepository: Set<UserId> = emptySet()
     private var timetableRepository: Map<UUID, Timetable> = emptyMap()
 
-    override fun find(userId: UserId): UserId? = userRepository.find { it == userId }
-    override fun save(entity: UserId) { userRepository = userRepository + entity }
+    override fun findByUser(userId: UserId): Result<Timetable, UserNotFound> =
+        timetableRepository.values.find { it.userId == userId }?.asSuccess()
+            ?: UserNotFound.asFailure()
+
     override fun save(entity: Timetable) { timetableRepository = timetableRepository.plus(UUID.randomUUID() to entity) }
 }

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import errorhandling.map
 import errorhandling.orElse
 import imhere.application.Hub
+import imhere.domain.AttemptToCheckOut
 import imhere.domain.UserId
+import imhere.domain.acl.UserNotFound
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method.POST
 import org.http4k.core.Request
@@ -27,7 +29,11 @@ class ImHereHttpHandler(
     fun handleCheckout(user: UserId): Response = hub.checkOut(user).map {
         Response(Status.CREATED)
     }.orElse {
-        Response(Status.NOT_FOUND)
+        when (it) {
+            is UserNotFound -> Response(Status.NOT_FOUND)
+            is AttemptToCheckOut -> Response(Status.UNPROCESSABLE_ENTITY)
+            else -> Response(Status.INTERNAL_SERVER_ERROR)
+        }
     }
 
     fun handleCheckIn(user: UserId): Response = hub.checkIn(user).map {
