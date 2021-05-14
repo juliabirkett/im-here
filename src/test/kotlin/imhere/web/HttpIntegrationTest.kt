@@ -8,6 +8,8 @@ import imhere.domain.Timetable
 import imhere.domain.UserId
 import imhere.domain.acl.Storage
 import imhere.domain.acl.UserNotFound
+import imhere.web.Resources.Companion.checkIn
+import imhere.web.Resources.Companion.checkOut
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -28,7 +30,7 @@ class HttpIntegrationTest {
         @Test
         fun `when checking in successfully, returns 201`() {
             testingStorage.save(emptyTimetable)
-            val request = Request(method = Method.POST, uri = "/check-in")
+            val request = Request(method = Method.POST, uri = checkIn)
                 .body(jsonActionBody(emptyTimetable.userId))
 
             assertEquals(201, handler(request).status.code)
@@ -37,11 +39,11 @@ class HttpIntegrationTest {
         @Test
         fun `when checking out after check-in, returns 201`() {
             testingStorage.save(emptyTimetable.checkIn())
-            val checkInRequest = Request(method = Method.POST, uri = "/check-in")
+            val checkInRequest = Request(method = Method.POST, uri = checkIn)
                 .body(jsonActionBody(emptyTimetable.userId))
             handler(checkInRequest)
 
-            val request = Request(method = Method.POST, uri = "/check-out")
+            val request = Request(method = Method.POST, uri = checkOut)
                 .body(jsonActionBody(emptyTimetable.userId))
 
             assertEquals(201, handler(request).status.code)
@@ -50,7 +52,7 @@ class HttpIntegrationTest {
         @Test
         fun `when checking out without checking in, returns 422`() {
             testingStorage.save(emptyTimetable)
-            val request = Request(method = Method.POST, uri = "/check-out")
+            val request = Request(method = Method.POST, uri = checkOut)
                 .body(jsonActionBody(emptyTimetable.userId))
 
             assertEquals(422, handler(request).status.code)
@@ -61,7 +63,7 @@ class HttpIntegrationTest {
     inner class WhenUserDoesNotExist {
         @Test
         fun `when checking in, returns 404`() {
-            val request = Request(method = Method.POST, uri = "/check-in")
+            val request = Request(method = Method.POST, uri = checkIn)
                 .body(jsonActionBody(UserId()))
 
             assertEquals(404, handler(request).status.code)
@@ -69,7 +71,7 @@ class HttpIntegrationTest {
 
         @Test
         fun `when checking out, returns 404`() {
-            val request = Request(method = Method.POST, uri = "/check-out")
+            val request = Request(method = Method.POST, uri = checkOut)
                 .body(jsonActionBody(UserId()))
 
             assertEquals(404, handler(request).status.code)

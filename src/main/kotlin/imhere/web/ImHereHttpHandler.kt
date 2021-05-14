@@ -4,6 +4,9 @@ import errorhandling.map
 import errorhandling.orElse
 import imhere.application.Hub
 import imhere.domain.UserId
+import imhere.web.Resources.Companion.checkIn
+import imhere.web.Resources.Companion.checkOut
+import imhere.web.Resources.Companion.healthCheck
 import org.http4k.core.*
 import org.http4k.core.Method.POST
 import org.http4k.routing.bind
@@ -14,9 +17,9 @@ class ImHereHttpHandler(
     private val hub: Hub
 ): HttpHandler {
     val app = routes(
-        "health" bind Method.GET to { Response(Status.OK) },
-        "check-in" bind POST to { handleCheckIn(it.jsonToText("/user").toUserId()) },
-        "check-out" bind POST to { handleCheckout(it.jsonToText("/user").toUserId()) }
+        healthCheck bind Method.GET to { Response(Status.OK) },
+        checkIn bind POST to { handleCheckIn(it.jsonToText("/user").toUserId()) },
+        checkOut bind POST to { handleCheckout(it.jsonToText("/user").toUserId()) }
     )
 
     override fun invoke(request: Request): Response = app(request)
@@ -29,6 +32,14 @@ class ImHereHttpHandler(
         Response(Status.CREATED)
     }.orElse {
         Response(Status.NOT_FOUND)
+    }
+}
+
+class Resources {
+    companion object {
+        const val healthCheck = "health"
+        const val checkIn = "check-in"
+        const val checkOut = "check-out"
     }
 }
 

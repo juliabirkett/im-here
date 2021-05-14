@@ -1,6 +1,7 @@
 package imhere.functional
 
 import imhere.web.ImHereServer
+import imhere.web.Resources.Companion.healthCheck
 import org.http4k.core.*
 import org.http4k.filter.ClientFilters
 import org.http4k.server.Netty
@@ -29,6 +30,6 @@ class ApplicationTest {
 
     @Test
     fun `checks if the application can start with all real dependencies`() {
-        assertTrue(app(Request(Method.GET, "/health")).status.successful)
+        assertTrue(app(Request(Method.GET, healthCheck)).status.successful)
     }
 }
