@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class ApplicationTest {
+class HttpApplicationTest {
     private val handler = ImHereServer.handler
     private val server = handler.asServer(Netty())
     private val app: HttpHandler = ClientFilters.SetBaseUriFrom(Uri.of("http://localhost:${server.port()}")).then(handler)
