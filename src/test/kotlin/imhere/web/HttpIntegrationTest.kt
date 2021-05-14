@@ -82,7 +82,6 @@ class HttpIntegrationTest {
 }
 
 class InMemoryStorage: Storage {
-    private var userRepository: Set<UserId> = emptySet()
     private var timetableRepository: Map<UUID, Timetable> = emptyMap()
 
     override fun findByUser(userId: UserId): Result<Timetable, UserNotFound> =
