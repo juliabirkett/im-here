@@ -1,7 +1,8 @@
 package imhere.web
 
 import imhere.application.Hub
-import imhere.infra.DatabaseConfig
+import imhere.infra.Environment
+import imhere.infra.Environment.Env.Local
 import imhere.infra.PGStorage
 import imhere.infra.dsl
 import org.http4k.server.Http4kServer
@@ -10,16 +11,13 @@ import org.http4k.server.asServer
 import org.postgresql.ds.PGConnectionPoolDataSource
 
 object ImHereServer {
+    // TODO: receive from env var
+    private val env = Environment(Local)
+
     val storage = PGStorage(
-        DatabaseConfig(
-            host = "imhere-postgresql.local.birketta.io",
-            port = 5433,
-            user = "birketta",
-            password = "birketta123!",
-            databaseName = "imhere"
-        ).toConnection(
-            PGConnectionPoolDataSource()
-        ).dsl()
+        env.databaseConfig
+            .toConnection(PGConnectionPoolDataSource())
+            .dsl()
     )
 
     val handler = ImHereHttpHandler(
