@@ -4,13 +4,12 @@ import errorhandling.success
 import imhere.domain.Timetable
 import imhere.domain.UserId
 import imhere.web.ImHereServer
-import imhere.web.ImHereServer.dsl
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class PGStorageTest {
-    private val storage = PGStorage(context = ImHereServer.connection().dsl())
+    private val storage = ImHereServer.storage
 
     @AfterEach
     fun teardown() {
