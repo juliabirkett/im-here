@@ -25,4 +25,5 @@ object ImHereServer {
     )
 
     operator fun invoke(): Http4kServer = handler.asServer(Netty())
+        .also { println("Starting application...") }
 }
