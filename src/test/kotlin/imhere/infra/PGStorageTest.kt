@@ -3,13 +3,19 @@ package imhere.infra
 import errorhandling.success
 import imhere.domain.Timetable
 import imhere.domain.UserId
-import imhere.web.ImHereServer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.postgresql.ds.PGConnectionPoolDataSource
 
 class PGStorageTest {
-    private val storage = ImHereServer.storage
+    private val env = Environment(Environment.Env.Test)
+
+    private val storage = PGStorage(
+        env.databaseConfig
+            .toConnection(PGConnectionPoolDataSource())
+            .dsl()
+    )
 
     @AfterEach
     fun teardown() {
